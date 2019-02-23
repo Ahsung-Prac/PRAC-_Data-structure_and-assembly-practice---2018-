@@ -1,0 +1,137 @@
+	.text
+	.global main
+
+main:	save %sp, -104, %sp	
+	set str_A, %o0
+	call printf
+	nop
+
+	set mat_A, %o0
+	mov 2, %o1
+	mov 3, %o2
+	call matprint
+	nop
+
+	set str_B, %o0    
+	call printf 
+	nop
+	set mat_B, %o0   
+	mov 3, %o1   
+	mov 4, %o2    
+	call matprint 
+	nop
+	
+	set mat_A, %o0   
+	mov 2,%o1    
+	mov 3,%o2  
+	set mat_B, %o3    
+	mov 3,%o4    
+	mov 4,%o5    
+	set mat_C, %l0    
+	st %l0, [%sp+92]    
+	st %o1,[%sp+96]    
+	st %o5,[%sp+100]    
+	call matmul	
+	nop
+	
+	set str_C, %o0    
+	call printf
+	nop
+	set mat_C, %o0    
+	mov 2,%o1    
+	mov 4,%o2    
+	call matprint 
+	nop
+	
+
+	ret
+	restore
+
+
+
+
+matprint: save %sp, -96, %sp
+	mov 1, %l0       	! i = 1, 열의 수 , i < %i2 i++을 최적화를 위해 뒤에 놓다보니 하나 적게 검사 해야됨
+	ba testrow
+	mov 0, %l1	! j= 0,  행의 수 , j < %i1
+loop:	set str1, %o0
+	ld [%i0], %o1 	! %i0의 주소값안에 메모리를 %o1으로..	
+	call printf
+	add %i0, 4, %i0 	! %i0 다음 메모리 주소로..
+
+testcol:	cmp %l0, %i2    	! i < %i2, i는 열 인덱스 %i2는 열의 수 
+	bl loop
+	inc %l0
+	
+	set str2, %o0
+	call printf
+	mov 1, %l0   	! i가 모두 다 돌았으면 다시 0으로.      	
+testrow:	cmp %l1, %i1	! j < %l1, j는 행 인덱스, %i1은 행의 수
+	bl loop
+	inc %l1               
+	
+end:	ret      		! j >= %l1 이면 loop로 더 이상 가지 않고 종료
+	restore
+
+matmul:	save %sp, -96, %sp
+
+	mov 0, %l0	!계산의 끝나 C에 들어가야할 값.	
+	mov 1, %l1	!현재 A의 열과 B의 행 위치 %l1 < %i2 , %i4   처음이 기본으로 실행되므로 1을 더해주고감
+	mov 1, %l2	!현재 B의 열위치 %l2 < %i5		         처음이 기본으로 실행되므로 1을 더해주고감
+	mov 0, %l3	!현재 A의 행위치 %l3 < %i1
+	mov %i3, %l4 	!B의 메모리 열이동 담당
+	mov %i0, %l5	!A의 메모리의 행이동 담당.
+	mov %i3, %l6	!B의 메모리의 행이동 담당
+	ba rownext
+	ld [%fp + 92], %l7	!%l7에 C의 첫주소를 저장
+
+mloop:	ld [%i0], %o0     	! %o0는 A에서 나온 값.
+	call .mul
+	ld [%l6], %o1	! %o1은 B에서 나온 값.
+	add %l0, %o0, %l0	! %l0에 AB곱한 값을 더해줌.
+	add %i0, 4, %i0	! 그다음 열로 넘어감 +4 바이트
+	sll %i5, 2, %o1	! B의 열 * 4를 %o1에 임시로 넣어둠
+	add %l6, %o1, %l6 ! 그다음 행으로 넘어강 + 4 * col 바이트
+
+colow:	cmp %l1, %i2
+	bl mloop
+	inc %l1
+	add %l4, 4, %l4 	!%l4는 4씩 이동이 누적되야 되므로 바로 %l6에 넣지 않고 자신한테 한번 넣는다.
+	mov %l4, %l6	! B는 다음열로 이동
+	mov %l5, %i0	! A의 열은 다시 처음으로
+	mov 1, %l1	! 열과 행위치 다시 처음으로
+l0:	st %l0, [%l7]	! %l0의 값을 C에 넣음
+	add %l7, 4, %l7	! C는 그다음 주소로 넘어감
+	mov 0, %l0	! %l0는 0을로 초기화
+	
+colnext:	cmp %l2, %i5
+	bl mloop
+	inc %l2
+	sll %i2, 2, %o1	! A의 열 * 4 바이트
+	add %l5, %o1, %l5 ! A의 계산 행이 다음으로 넘어감.
+	mov %l5, %i0
+	mov %i3, %l4
+	mov %i3, %l6  	! B의 행과 열이 처음으로 돌아옴.
+	mov 1, %l2
+	
+rownext:	cmp %l3, %i1     	! C의 행과 열대로 넣기보다는 순서대로 한바이트씩 넣었기에 행과 열을 인수로 받아도 쓰지 않았습니다.
+	bl mloop
+	inc %l3 
+
+mend:	ret
+	restore
+
+.bss
+mat_C: .skip 4*2*4				! 4byte word type 데이터가 2x4 형태로 들어가기 위한 공간
+.data  
+mat_A: .word 1,2,3,4,5,6				! 2x3 행렬A row major order 
+mat_B: .word 10,20,30,40,50,60,70,80,90,100,110,120 	! 3x4 행렬B row major order 
+str_A: .asciz "mat_A \n" 
+str_B: .asciz "mat_B \n" 
+str_C: .asciz "mat_C \n"
+str1: .asciz "%d "
+str2: .asciz "\n"
+
+/*mat_C: .word 0,1,2,3,4,5,6,7*/
+
+

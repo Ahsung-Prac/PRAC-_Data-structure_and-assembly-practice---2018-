@@ -1,0 +1,16 @@
+﻿  hw9a.cpp
+c:\users\최아성\desktop\프로그램\자료구조\자료구조.ds_9\자료구조.ds_9\bst.h(128): warning C4101: 'tempdaddyptr' :참조되지 않은 지역 변수입니다.
+  c:\users\최아성\desktop\프로그램\자료구조\자료구조.ds_9\자료구조.ds_9\bst.h(127): note: 클래스 템플릿 멤버 함수 'void BST<std::string,int>::Delete(Node<K,E> *&,K &)'을(를) 컴파일하고 있습니다.
+          with
+          [
+              K=std::string,
+              E=int
+          ]
+  c:\users\최아성\desktop\프로그램\자료구조\자료구조.ds_9\자료구조.ds_9\bst.h(31): note: 컴파일 중인 함수 템플릿 인스턴스화 'void BST<std::string,int>::Delete(Node<K,E> *&,K &)'에 대한 참조를 확인하십시오.
+          with
+          [
+              K=std::string,
+              E=int
+          ]
+  c:\users\최아성\desktop\프로그램\자료구조\자료구조.ds_9\자료구조.ds_9\hw9a.cpp(9): note: 컴파일 중인 클래스 템플릿 인스턴스화 'BST<std::string,int>'에 대한 참조를 확인하세요.
+  자료구조.ds_9.vcxproj -> C:\Users\최아성\Desktop\프로그램\자료구조\자료구조.ds_9\Debug\자료구조.ds_9.exe

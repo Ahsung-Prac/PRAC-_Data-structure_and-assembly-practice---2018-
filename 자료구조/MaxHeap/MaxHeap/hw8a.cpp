@@ -1,0 +1,19 @@
+#include "maxheap.h"
+#include<queue>
+using namespace std;
+
+int main() {
+	priority_queue<int> PQ;
+	MaxHeap<int> H;
+	H.Push(15); H.Push(14); H.Push(21); H.Push(2);
+	H.Push(10); H.Push(20);
+
+	cout << H;
+
+	while (!H.IsEmpty()) {
+		cout << H.Top() << " "; H.Pop();
+	}
+	cout << endl;
+
+	return 0;
+}

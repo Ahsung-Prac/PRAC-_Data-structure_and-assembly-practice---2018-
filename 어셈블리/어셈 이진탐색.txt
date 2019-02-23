@@ -1,0 +1,62 @@
+.text
+.global main
+
+	N= 16
+	target= -4
+
+main: 	save %sp, -96 , %sp
+
+	mov 0, %l0 	 ! low= %l0
+	mov N-1, %l1  	 ! high = %l1
+	
+	set str2, %o0                 
+	mov %fp, %o1
+	add %o1, target, %o1
+ 	call scanf                     !target메모리에 직접 넣음.
+	nop
+	ld [%o1], %l5
+	!st %l5, [%fp+target]
+
+loop:	cmp %l0,%l1
+	bg NotF
+	nop
+	add %l0, %l1, %l3       ! %l3= low+high
+	mov %l3, %o0
+	call .div
+	mov 2, %o1
+	mov %o0, %l2            ! mid= %l2
+	sll  %l2 ,2 ,%l2          !4바이트 씩
+	set list, %o0
+	add %o0, %l2, %o0
+	ld [%o0],  %l4 
+	ld [%fp+target], %l5
+	cmp %l4, %l5            !61번쨰 줄 %l4는 list[mid]값 %l5는 target의 값
+	bg,a loop
+	sub %l1, 1, %l1
+	bl loop
+	add %l0, 1, %l0
+	
+	sra %l2,2,%l2          !*4한거 원래대로
+	set str1,%o0
+	call printf
+	mov %l2, %o1
+	ba end
+	nop
+
+NotF:	set str3, %o0
+	call printf
+	nop
+end:	ret
+	restore
+
+	
+
+.data
+str1: .asciz "Found! id: %d\n"
+str2: .asciz "%d"
+str3: .asciz "Not found\n"
+.align 4
+list: 	.word  1, 4, 7, 10, 10                            !전역변수 배열이므로 .data영역에 선언
+	.word  12, 40,  46, 48
+	.word  50, 58, 62, 66
+	.word  68, 92, 96
